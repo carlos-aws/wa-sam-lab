@@ -16,22 +16,31 @@ Parameters:
     Description: Enable ("True") or disable ("False") integration with JIRA. Default is "True".
   WorkloadTagKey:
     Type: String
+    Default: "e.g. MyTagKeyName"
     Description: Enter the Tag Key associated with your workload resources.
   WorkloadTagValue:
     Type: String
+    Default: "e.g. MyTagKeyValue"
     Description: Enter the Tag Value associated with your workload resources.
   JiraURL:
     Type: String
+    Default: "e.g. https://my-jira-workspace.atlassian.net"
     Description: Enter the URL of your Jira workspace (e.g. "https://my-jira-workspace.atlassian.net")
   JiraUsername:
     Type: String
+    Default: "e.g. myname@email.com"
     Description: Enter your Jira username
   JiraSecretSSMParam:
     Type: String
+    Default: "e.g. Myencryptedssmparamforjiratoken"
     Description: Enter the name of the SSM encrypted parameter of your Jira API Access Topic (DO NOT ENTER THE API TOKEN ITSELF)
   JiraProjectKey:
     Type: String
     Description: Enter your Jira project key
+Outputs:
+  SNSTopicARN:
+    Description: SNS Topic ARN for Jira Automation
+    Value: !Ref TopicJiraAutomations
 Resources:
   LambdaWATracker:
     Type: AWS::Serverless::Function
@@ -42,7 +51,7 @@ Resources:
       PackageType: Zip
       CodeUri: src/LambdaWATracker
       Handler: lambda-wa-tracker.lambda_handler
-      Runtime: python3.9
+      Runtime: python3.7
       MemorySize: 3008
       Timeout: 300
       Tracing: PassThrough
@@ -101,7 +110,7 @@ Resources:
       PackageType: Zip
       CodeUri: src/LambdaTicketListener
       Handler: lambda-ticket-listener.lambda_handler
-      Runtime: python3.9
+      Runtime: python3.7
       MemorySize: 3008
       Timeout: 300
       Tracing: PassThrough
