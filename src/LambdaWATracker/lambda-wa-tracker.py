@@ -4,6 +4,7 @@ import os
 from jira import JIRA
 import json
 import hashlib
+import re
 from boto3.dynamodb.conditions import Key
 from datetime import datetime, timezone
 logger = logging.getLogger()
@@ -139,7 +140,8 @@ def get_ta_check_summary(bp_ta_check_ids_list):
     filtered_ta_checks_list = [d for d in ta_checks_list if 'id' in d and d['id'] in bp_ta_check_ids_list]
 
     for check in filtered_ta_checks_list:
-        bp_ta_checks.append({'id': check['id'], 'name': check['name'], 'metadataOrder': check['metadata']})
+        ta_urls = [d for d in re.split('href="|" target=', check['description']) if d.startswith('https')]
+        bp_ta_checks.append({'id': check['id'], 'name': check['name'], 'taRecommedationUrls': ta_urls, 'metadataOrder': check['metadata']})
 
     return bp_ta_checks
 
@@ -195,7 +197,10 @@ def create_ops_item(answer, choice, bp_ta_checks, WORKLOAD_ID, LENS_ALIAS):
                 "\nTA Check Name: " + check_flagged['name'] +
                 "\n\n*Raw data with resources affected:*" + 
                 "\nFlagged Resources (" + str(len(check_flagged['flaggedResources'])) + "):\n " + json.dumps(flagged_resources_list, indent = 3) + 
-                "\n\n*Useful link for resolution (Implementation Guidance):*\n[" + imp_guid_web + "]")
+                "\n\n*Useful link for resolution:*" +
+                "\nWell-Architected Implementation Guidance links:\n[" + imp_guid_web + "]" +
+                "\n\nTrusted Advisor useful links:\n" + json.dumps(check_flagged['taRecommedationUrls'], indent = 3)
+            )
 
             operation_data = []
             for resource in flagged_resources_list:
@@ -277,7 +282,10 @@ def create_jira_issue(jira_client, answer, choice, bp_ta_checks, WORKLOAD_ID, LE
                 "\nTA Check Name: " + check_flagged['name'] +
                 "\n\n*Raw data with resources affected:*" + 
                 "\nFlagged Resources (" + str(len(check_flagged['flaggedResources'])) + "):\n{color:#97a0af} " + flagged_resources_list + "{color}" + 
-                "\n\n*Useful link for resolution (Implementation Guidance):*\n[" + imp_guid_web + "]")
+                "\n\n*Useful link for resolution:*" +
+                "\nWell-Architected Implementation Guidance links:\n[" + imp_guid_web + "]" +
+                "\n\nTrusted Advisor useful links:\n" + json.dumps(check_flagged['taRecommedationUrls'], indent = 3)
+            )
            
             ticketHeaderKey = hashlib.md5(('jira' + check_flagged['workloadId'] + check_flagged['bestPracticeTitle'] + check_flagged['id']).encode()).hexdigest()
             ticketContentKey = hashlib.md5(str(check_flagged).encode()).hexdigest()
