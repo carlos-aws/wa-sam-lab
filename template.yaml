@@ -51,7 +51,7 @@ Resources:
       PackageType: Zip
       CodeUri: src/LambdaWATracker
       Handler: lambda-wa-tracker.lambda_handler
-      Runtime: python3.7
+      Runtime: python3.9
       MemorySize: 3008
       Timeout: 300
       Tracing: PassThrough
@@ -110,7 +110,7 @@ Resources:
       PackageType: Zip
       CodeUri: src/LambdaTicketListener
       Handler: lambda-ticket-listener.lambda_handler
-      Runtime: python3.7
+      Runtime: python3.9
       MemorySize: 3008
       Timeout: 300
       Tracing: PassThrough
@@ -190,6 +190,11 @@ Resources:
         detail:
           eventName:
             - UpdateAnswer
+          userIdentity:
+            sessionContext:
+              sessionIssuer:
+                userName:
+                  - anything-but: !Ref LambdaTicketListenerRole
       Targets:
         - Id: !Ref LambdaWATracker
           Arn: !GetAtt LambdaWATracker.Arn
