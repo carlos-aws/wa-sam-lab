@@ -87,7 +87,7 @@ def ddb_update_entry(ticketHeaderKey, creationDate, updateDate, ticketContentKey
     return response
 
 def get_workload_resources():
-    resource_arns = []
+    resources = {"resource_arns":[], "resource_names":[]}
 
     paginator = resource_group_client.get_paginator('get_resources')
     response_iterator = paginator.paginate(TagFilters=[
@@ -101,9 +101,10 @@ def get_workload_resources():
 
     for page in response_iterator:
         for resource in page['ResourceTagMappingList']:
-            resource_arns.append(resource['ResourceARN'])
-    
-    return resource_arns
+            resources["resource_arns"].append(resource['ResourceARN'])
+            resources["resource_names"].append(resource['ResourceARN'].split(':')[-1])
+            
+    return resources
 
 def get_unselected_choices(answer):
     selected_choices = answer['SelectedChoices']
@@ -154,7 +155,10 @@ def add_flaggedresources(bp_ta_checks, workload_resources):
         )['result']
         if check_result['status'] in ['warning', 'error']:
             for flagged_resource in check_result['flaggedResources']:
-                if flagged_resource['status'] in ['warning', 'error'] and any(x in flagged_resource['metadata'] for x in workload_resources):
+                if flagged_resource['status'] in ['warning', 'error'] and any(x in flagged_resource['metadata'] for x in workload_resources["resource_arns"]):
+                    check['flaggedResources'].append(flagged_resource)
+
+                elif flagged_resource['status'] in ['warning', 'error'] and any(x in flagged_resource['metadata'] for x in workload_resources["resource_names"]):
                     check['flaggedResources'].append(flagged_resource)
 
     return(bp_ta_checks)
@@ -204,7 +208,7 @@ def create_ops_item(answer, choice, bp_ta_checks, WORKLOAD_ID, LENS_ALIAS):
 
             operation_data = []
             for resource in flagged_resources_list:
-                if resource['Resource']:
+                if 'Resource' in resource:
                     operation_data.append({'arn': resource['Resource']})
 
             operational_data_object = {
