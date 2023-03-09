@@ -37,6 +37,11 @@ Parameters:
   JiraProjectKey:
     Type: String
     Description: Enter your Jira project key
+  WorkloadAccountRoleName:
+    Type: String
+    Default: "e.g. If ARN is 'arn:aws:iam::123456789012:role/workload-account-role'. Role name is 'workload-account-role'"
+    Description: Enter the name of the workload account IAM role to assume (e.g. "workload-account-role")
+
 Outputs:
   SNSTopicARN:
     Description: SNS Topic ARN for Jira Automation
@@ -67,6 +72,7 @@ Resources:
           JIRA_USERNAME: !Ref JiraUsername
           JIRA_SECRET_SSM_PARAM: !Ref JiraSecretSSMParam
           JIRA_PROJECT_KEY: !Ref JiraProjectKey
+          WORKLOAD_ACCOUNT_ROLE_NAME: !Ref WorkloadAccountRoleName
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref TicketStateTable
