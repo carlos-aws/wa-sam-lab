@@ -78,6 +78,7 @@ Resources:
             Action:
             - wellarchitected:ListCheckDetails
             - wellarchitected:GetAnswer
+            - wellarchitected:GetWorkload
             Resource: '*'
           - Sid: ResourceGroupPolicy
             Effect: Allow
@@ -95,6 +96,11 @@ Resources:
             Action:
             - ssm:CreateOpsItem
             - ssm:UpdateOpsItem
+            Resource: '*'
+          - Sid: STSPolicy
+            Effect: Allow
+            Action:
+            - sts:AssumeRole
             Resource: '*'
   LambdaWATrackerLogGroup:
     Type: AWS::Logs::LogGroup
