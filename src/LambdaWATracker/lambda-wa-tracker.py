@@ -39,11 +39,14 @@ JIRA_PROJECT_KEY = os.environ['JIRA_PROJECT_KEY']
 
 # DDB
 DDB_TABLE = dynamodb_resource.Table(os.environ['DDB_TABLE'])
+
+# Assumed Role Name
+WORKLOAD_ACCOUNT_ROLE_NAME = os.environ['WORKLOAD_ACCOUNT_ROLE_NAME']
 ######################################
 
 # Assume Role of Workload Account
 def assume_workload_account_role(account_id):
-    workload_account_role = 'arn:aws:iam::' + account_id + ':role/workload-account-role'
+    workload_account_role = 'arn:aws:iam::' + account_id + ':role/' + WORKLOAD_ACCOUNT_ROLE_NAME
     assumed_role_credentials = sts_client.assume_role(
         RoleArn=workload_account_role,
         RoleSessionName='workload-account-role'
