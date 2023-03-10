@@ -39,8 +39,8 @@ Parameters:
     Description: Enter your Jira project key
   WorkloadAccountRoleName:
     Type: String
-    Default: "e.g. If ARN is 'arn:aws:iam::123456789012:role/workload-account-role'. Role name is 'workload-account-role'"
-    Description: Enter the name of the workload account IAM role to assume (e.g. "workload-account-role")
+    Default: WAToolTrustedRole
+    Description: Enter the name of the workload account IAM role to assume (e.g. "WAToolTrustedRole")
   ScanAll:
     Type: String
     Default: "False"
