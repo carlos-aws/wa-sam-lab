@@ -41,6 +41,13 @@ Parameters:
     Type: String
     Default: "e.g. If ARN is 'arn:aws:iam::123456789012:role/workload-account-role'. Role name is 'workload-account-role'"
     Description: Enter the name of the workload account IAM role to assume (e.g. "workload-account-role")
+  ScanAll:
+    Type: String
+    Default: "False"
+    AllowedValues:
+      - "False"
+      - "True"
+    Description: Enable ("True") if want to scan all resources in the account and region (Supported by AWS Resource Groups Tag Editor). Or disable ("False"), if want to scan only resources with specific key/value tags.
 
 Outputs:
   SNSTopicARN:
@@ -73,6 +80,7 @@ Resources:
           JIRA_SECRET_SSM_PARAM: !Ref JiraSecretSSMParam
           JIRA_PROJECT_KEY: !Ref JiraProjectKey
           WORKLOAD_ACCOUNT_ROLE_NAME: !Ref WorkloadAccountRoleName
+          SCAN_ALL: !Ref ScanAll
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref TicketStateTable
@@ -202,11 +210,17 @@ Resources:
         detail:
           eventName:
             - UpdateAnswer
-          userIdentity:
-            sessionContext:
-              sessionIssuer:
-                userName:
-                  - anything-but: !Ref LambdaTicketListenerRole
+          $or:
+          -
+              userIdentity:
+                sessionContext:
+                  sessionIssuer:
+                    userName:
+                      - anything-but: !Ref LambdaTicketListenerRole
+          -
+              userIdentity:
+                type:
+                - IAMUser
       Targets:
         - Id: !Ref LambdaWATracker
           Arn: !GetAtt LambdaWATracker.Arn
