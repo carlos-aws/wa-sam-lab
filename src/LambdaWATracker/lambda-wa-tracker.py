@@ -220,7 +220,7 @@ def flagged_resource_formatter(check_flagged):
 
     return (flagged_resources_list)
 
-def create_ops_item(answer, choice, bp_ta_checks, WORKLOAD_ID, LENS_ALIAS, account_id):
+def create_ops_item(answer, choice, bp_ta_checks, WORKLOAD_ID, LENS_ALIAS, account_id, workload_name):
     # Filter out any TA Check for which there were no flagged resources.
     bp_ta_checks_flagged = [d for d in bp_ta_checks if len(d['flaggedResources']) > 0]
 
@@ -238,7 +238,8 @@ def create_ops_item(answer, choice, bp_ta_checks, WORKLOAD_ID, LENS_ALIAS, accou
             check_flagged['implementationGuide'] = imp_guid_web
             flagged_resources_list = flagged_resource_formatter(check_flagged)
 
-            ops_item_description = ("*AWS Account ID:* " + account_id + "\n*AWS Well-Architected related information:*\nWorkload Id: " + WORKLOAD_ID +
+            ops_item_description = ("*AWS Account ID:* " + account_id + "\n*AWS Well-Architected related information:*\nWorkload Name: " + workload_name +
+                "\nWorkload Id: " + WORKLOAD_ID +
                 "\nPillar Id: " + answer['PillarId'] +
                 "\nQuestion: " + answer['QuestionTitle'] +
                 "\nQuestion Risk Identified: " + answer['Risk'] +
@@ -310,7 +311,7 @@ def create_ops_item(answer, choice, bp_ta_checks, WORKLOAD_ID, LENS_ALIAS, accou
     else:
         logger.info(f'No flagged resources for this Best Practice {choice["choiceId"]} on any of its Trusted Advisor checks')
 
-def create_jira_issue(jira_client, answer, choice, bp_ta_checks, WORKLOAD_ID, LENS_ALIAS, account_id):
+def create_jira_issue(jira_client, answer, choice, bp_ta_checks, WORKLOAD_ID, LENS_ALIAS, account_id, workload_name):
     # Filter out any TA Check for which there were no flagged resources.
     bp_ta_checks_flagged = [d for d in bp_ta_checks if len(d['flaggedResources']) > 0]
 
@@ -328,7 +329,8 @@ def create_jira_issue(jira_client, answer, choice, bp_ta_checks, WORKLOAD_ID, LE
             check_flagged['implementationGuide'] = imp_guid_web
             flagged_resources_list = json.dumps(flagged_resource_formatter(check_flagged), indent = 3)
 
-            jira_issue_description = ("*AWS Account ID:* " + account_id + "\n*AWS Well-Architected related information:*\nWorkload Id: " + WORKLOAD_ID +
+            jira_issue_description = ("*AWS Account ID:* " + account_id + "\n*AWS Well-Architected related information:*\nWorkload Name: " + workload_name +
+                "\nWorkload Id: " + WORKLOAD_ID +
                 "\nPillar Id: " + answer['PillarId'] +
                 "\nQuestion: " + answer['QuestionTitle'] +
                 "\nQuestion Risk Identified: " + answer['Risk'] +
@@ -395,6 +397,8 @@ def lambda_handler(event, context):
             WorkloadId=WORKLOAD_ID
         )['Workload']
 
+        workload_name = workload_details['WorkloadName']
+
         if 'AccountIds' not in workload_details:
             logger.info(f'There are no Account IDs listed for this workload in the Well-Architected Tool. Specify at least one Account ID used by Trusted Advisor in the Well-Architected Tool workload Account IDs field. This field is required to activate Trusted Advisor. Exiting.')
             return
@@ -449,10 +453,10 @@ def lambda_handler(event, context):
                 # Proceed to create Jira tickets or OpsItems for each WA-BP<-->TA-Check unique pair (e.g. There can be 'n' TA Checks related to a WA BP, so it will create 'n' Jira/OpsItems for that BP).
                 if choice['title'] != 'None of these':
                     if OPS_CENTER_INTEGRATION:
-                        create_ops_item(answer, choice, bp_ta_checks, WORKLOAD_ID, LENS_ALIAS, account_id)
+                        create_ops_item(answer, choice, bp_ta_checks, WORKLOAD_ID, LENS_ALIAS, account_id, workload_name)
 
                     if JIRA_INTEGRATION:
-                        create_jira_issue(jira_client, answer, choice, bp_ta_checks, WORKLOAD_ID, LENS_ALIAS, account_id)
+                        create_jira_issue(jira_client, answer, choice, bp_ta_checks, WORKLOAD_ID, LENS_ALIAS, account_id, workload_name)
 
     except Exception as e:
         logger.error(f"Error encountered. Exception: {e}")
