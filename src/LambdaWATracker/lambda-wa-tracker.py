@@ -23,9 +23,12 @@ sts_client = boto3.client('sts')
 OPS_CENTER_INTEGRATION = (os.environ['OPS_CENTER_INTEGRATION'] == 'True')
 JIRA_INTEGRATION = (os.environ['JIRA_INTEGRATION'] == 'True')
 
-# Worload related resources (based on tag)
-TAG_KEY=os.environ['TAG_KEY']
-TAG_VALUE=os.environ['TAG_VALUE']
+# Workload related resources (based on tag)
+TAG_KEY = os.environ['TAG_KEY']
+TAG_VALUE = os.environ['TAG_VALUE']
+
+# Scan all resources in region (Supported by AWS Resource Groups Tag Editor Tagging https://docs.aws.amazon.com/ARG/latest/userguide/supported-resources.html)
+SCAN_ALL = (os.environ['SCAN_ALL'] == 'True')
 
 # WA Implementation plan base-URL
 WA_WEB_URL='https://docs.aws.amazon.com/wellarchitected/latest/framework/'
@@ -113,14 +116,18 @@ def get_workload_resources(assumed_role_credentials):
             'resourcegroupstaggingapi'
         )
     paginator = resource_group_client_workload_account.get_paginator('get_resources')
-    response_iterator = paginator.paginate(TagFilters=[
-            {
-                'Key': TAG_KEY,
-                'Values': [
-                    TAG_VALUE,
-                ]
-            },
-        ])
+
+    if SCAN_ALL:
+        response_iterator = paginator.paginate()
+    elif not SCAN_ALL:
+        response_iterator = paginator.paginate(TagFilters=[
+                {
+                    'Key': TAG_KEY,
+                    'Values': [
+                        TAG_VALUE,
+                    ]
+                },
+            ])
 
     for page in response_iterator:
         for resource in page['ResourceTagMappingList']:
