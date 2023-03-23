@@ -73,7 +73,7 @@ Resources:
       PackageType: Zip
       CodeUri: src/LambdaWATracker
       Handler: lambda-wa-tracker.lambda_handler
-      Runtime: python3.9
+      Runtime: python3.7
       MemorySize: 3008
       Timeout: 300
       Tracing: PassThrough
