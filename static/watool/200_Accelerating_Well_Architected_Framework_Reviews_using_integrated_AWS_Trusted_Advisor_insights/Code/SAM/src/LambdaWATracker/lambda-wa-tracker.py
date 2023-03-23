@@ -45,6 +45,9 @@ DDB_TABLE = dynamodb_resource.Table(os.environ['DDB_TABLE'])
 
 # Assumed Role Name
 WORKLOAD_ACCOUNT_ROLE_NAME = os.environ['WORKLOAD_ACCOUNT_ROLE_NAME']
+
+# List of TA Checks that are no specific to individual resources
+NON_RESOURCE_SPECIFIC_TA_CHECKS = ['wuy7G1zxql']
 ######################################
 
 # Assume Role of Workload Account
@@ -204,6 +207,9 @@ def add_flagged_resources(bp_ta_checks, workload_resources, assumed_role_credent
                     check['flaggedResources'].append(flagged_resource)
 
                 elif flagged_resource['status'] in ['warning', 'error'] and any(x in flagged_resource['metadata'] for x in workload_resources["resource_names"]):
+                    check['flaggedResources'].append(flagged_resource)
+
+                elif flagged_resource['status'] in ['warning', 'error'] and check_result['checkId'] in NON_RESOURCE_SPECIFIC_TA_CHECKS:
                     check['flaggedResources'].append(flagged_resource)
 
     return(bp_ta_checks)
