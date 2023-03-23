@@ -48,6 +48,16 @@ Parameters:
       - "False"
       - "True"
     Description: Enable ("True") if want to scan all resources in the account and region (Supported by AWS Resource Groups Tag Editor). Or disable ("False"), if want to scan only resources with specific key/value tags.
+  AutoBpMilestoneUpdater:
+    Type: String
+    Default: "False"
+    AllowedValues:
+      - "False"
+      - "True"
+    Description: Enable ("True") or disable ("False") the automatic update of BP and create milestone in WA Tool.
+  EmailAddress:
+    Type: String
+    Description: Email address for the SNS topic subscription
 
 Outputs:
   SNSTopicARN:
@@ -63,7 +73,7 @@ Resources:
       PackageType: Zip
       CodeUri: src/LambdaWATracker
       Handler: lambda-wa-tracker.lambda_handler
-      Runtime: python3.7
+      Runtime: python3.9
       MemorySize: 3008
       Timeout: 300
       Tracing: PassThrough
@@ -140,6 +150,8 @@ Resources:
           TABLE_ARN: !GetAtt TicketStateTable.Arn
           OPS_CENTER_INTEGRATION: !Ref OpsCenterIntegration
           JIRA_INTEGRATION: !Ref JiraIntegration
+          AUTO_BP_MILESTONE_UPDATER: !Ref AutoBpMilestoneUpdater
+          TOPIC_WORKLOAD_BP_UPDATE: !Ref TopicWorkloadBPUpdate
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref TicketStateTable
@@ -150,6 +162,7 @@ Resources:
             - wellarchitected:GetAnswer
             - wellarchitected:UpdateAnswer
             - wellarchitected:CreateMilestone
+            - sns:Publish
             Resource: '*'
       Events:
         TopicJiraAutomations:
@@ -274,3 +287,14 @@ Resources:
           Resource: !Ref TopicJiraAutomations
       Topics:
       - !Ref TopicJiraAutomations
+  TopicWorkloadBPUpdate:
+    Type: 'AWS::SNS::Topic'
+    Properties:
+      DisplayName: WALAB-WorkloadUpdateTopic
+      TopicName: WorkloadBPUpdateTopic
+  TopicWorkloadBPUpdateSubscription:
+    Type: 'AWS::SNS::Subscription'
+    Properties:
+      Protocol: email
+      TopicArn: !Ref TopicWorkloadBPUpdate
+      Endpoint: !Ref EmailAddress
