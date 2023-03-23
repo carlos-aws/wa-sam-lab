@@ -11,7 +11,7 @@ AWS_REGION=$(curl --silent http://169.254.169.254/latest/dynamic/instance-identi
 
 read -s -p "Enter your Jira API Token: " JIRA_API_TOKEN
 echo -e '\n##############################'
-echo 'Creating System Manager Parameter Store Secret with Jira API Token'
+echo 'Creating System Manager SecureString Parameter Store "walabjirasecret" with Jira API Token'
 echo '##############################'
 aws ssm put-parameter --name walabjirasecret --type SecureString --value $JIRA_API_TOKEN
 
