@@ -67,7 +67,7 @@ def ddb_query_entries(ticketHeaderKey):
     return response['Items']
 
 # Function to add an entry to the dynamodb table
-def ddb_put_entry(ticketId, ticketType, creationDate, updateDate, ticketHeaderKey, ticketContentKey, workloadId, lensAlias, questionId, bestPracticeId):
+def ddb_put_entry(ticketId, ticketType, creationDate, updateDate, ticketHeaderKey, ticketContentKey, workloadId, lensAlias, questionId, bestPracticeId, workloadName, bestPracticeName, pillarId, pillarQuestion):
     response = DDB_TABLE.put_item(
        Item={
             'ticketId': ticketId,
@@ -79,7 +79,11 @@ def ddb_put_entry(ticketId, ticketType, creationDate, updateDate, ticketHeaderKe
             'workloadId': workloadId,
             'lensAlias': lensAlias,
             'questionId': questionId,
-            'bestPracticeId': bestPracticeId
+            'bestPracticeId': bestPracticeId,
+            'workloadName': workloadName,
+            'bestPracticeName': bestPracticeName,
+            'pillarId': pillarId,
+            'pillarQuestion': pillarQuestion
         }
     )
     return response
@@ -312,7 +316,7 @@ def create_ops_item(answer, choice, bp_ta_checks, WORKLOAD_ID, LENS_ALIAS, accou
                     Source='wa_labs',
                     Title='[WALAB] [' + account_id + '] - ' + check_flagged['name']
                 )
-                ddb_put_entry(create_ops_item_response['OpsItemId'], 'opscenter', datetime.now(timezone.utc).isoformat(), '', ticketHeaderKey, ticketContentKey, check_flagged['workloadId'], LENS_ALIAS, answer['QuestionId'], choice['choiceId'])
+                ddb_put_entry(create_ops_item_response['OpsItemId'], 'opscenter', datetime.now(timezone.utc).isoformat(), '', ticketHeaderKey, ticketContentKey, check_flagged['workloadId'], LENS_ALIAS, answer['QuestionId'], choice['choiceId'], workload_name, choice['title'], answer['PillarId'], answer['QuestionTitle'])
                 logger.info(f'OpsItem issue {create_ops_item_response["OpsItemId"]} created and recorded in DDB')
     else:
         logger.info(f'No flagged resources for this Best Practice {choice["choiceId"]} on any of its Trusted Advisor checks')
@@ -373,7 +377,7 @@ def create_jira_issue(jira_client, answer, choice, bp_ta_checks, WORKLOAD_ID, LE
                     description=jira_issue_description,
                     issuetype={'name': 'Task'}
                 )
-                ddb_put_entry(jira_create_issue_response.key, 'jira', datetime.now(timezone.utc).isoformat(), '', ticketHeaderKey, ticketContentKey, check_flagged['workloadId'], LENS_ALIAS, answer['QuestionId'], choice['choiceId'])
+                ddb_put_entry(jira_create_issue_response.key, 'jira', datetime.now(timezone.utc).isoformat(), '', ticketHeaderKey, ticketContentKey, check_flagged['workloadId'], LENS_ALIAS, answer['QuestionId'], choice['choiceId'], workload_name, choice['title'], answer['PillarId'], answer['QuestionTitle'])
                 logger.info(f'JIRA issue {jira_create_issue_response.key} created and recorded in DDB')
     else:
         logger.info(f'No flagged resources for this Best Practice {choice["choiceId"]} on any of its Trusted Advisor checks')
