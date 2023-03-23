@@ -140,7 +140,7 @@ Resources:
       PackageType: Zip
       CodeUri: src/LambdaTicketListener
       Handler: lambda-ticket-listener.lambda_handler
-      Runtime: python3.9
+      Runtime: python3.7
       MemorySize: 3008
       Timeout: 300
       Tracing: PassThrough
